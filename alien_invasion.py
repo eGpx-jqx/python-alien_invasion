@@ -22,11 +22,7 @@ class AlienInvasion:
             self._check_events()
             self.ship.update()
             self.bullets.update()
-            # 删除子弹
-            for bullet in self.bullets.copy():
-                if bullet.rect.y <= 0:
-                    self.bullets.remove(bullet)
-            print(len(self.bullets))
+            self._update_bullets()
             self._update_screen()
             # 设置刷新率
             self.clock.tick(60)
@@ -73,6 +69,13 @@ class AlienInvasion:
         if len(self.bullets) < self.settings.bullet_allowed:
             bullet = Bullet(self)
             self.bullets.add(bullet)
+
+    def _update_bullets(self):
+        # 删除子弹
+        for bullet in self.bullets.copy():
+            if bullet.rect.y <= 0:
+                self.bullets.remove(bullet)
+        print(len(self.bullets))
 
 
 if __name__ == '__main__':
