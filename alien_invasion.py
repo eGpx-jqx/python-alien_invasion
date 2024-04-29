@@ -3,6 +3,7 @@ from ship import Ship
 import pygame
 
 from settings import Settings
+from bullet import Bullet
 
 
 class AlienInvasion:
@@ -14,11 +15,13 @@ class AlienInvasion:
         self.screen = pygame.display.set_mode(size=(self.settings.screen_width, self.settings.screen_height))
         pygame.display.set_caption('Alien Invasion')
         self.ship = Ship(self)
+        self.bullets = pygame.sprite.Group()
 
     def run_game(self):
         while True:
             self._check_events()
             self.ship.update()
+            self.bullets.update()
             self._update_screen()
             # 设置刷新率
             self.clock.tick(60)
@@ -40,6 +43,8 @@ class AlienInvasion:
             self.ship.moving_left = True
         elif event.key == pygame.K_q:
             sys.exit()
+        elif event.key == pygame.K_SPACE:
+            self._fire_bullet()
 
     # 松开按键
     def _check_keyup_events(self, event):
@@ -53,8 +58,15 @@ class AlienInvasion:
         self.screen.fill(self.settings.bg_color)
         # 写入飞船
         self.ship.blitme()
+        # 写入子弹
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
         # 绘制
         pygame.display.flip()
+
+    def _fire_bullet(self):
+        bullet = Bullet(self)
+        self.bullets.add(bullet)
 
 
 if __name__ == '__main__':
