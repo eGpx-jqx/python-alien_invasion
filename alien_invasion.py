@@ -1,4 +1,6 @@
 import sys
+
+from alien import Alien
 from ship import Ship
 import pygame
 
@@ -16,6 +18,9 @@ class AlienInvasion:
         pygame.display.set_caption('Alien Invasion')
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
+        self.aliens = pygame.sprite.Group()
+
+        self._create_fleet()
 
     def run_game(self):
         while True:
@@ -23,6 +28,7 @@ class AlienInvasion:
             self.ship.update()
             self.bullets.update()
             self._update_bullets()
+            self._update_aliens()
             self._update_screen()
             # 设置刷新率
             self.clock.tick(60)
@@ -62,6 +68,8 @@ class AlienInvasion:
         # 写入子弹
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
+        # 写入飞船
+        self.aliens.draw(self.screen)
         # 绘制
         pygame.display.flip()
 
@@ -76,6 +84,34 @@ class AlienInvasion:
             if bullet.rect.y <= 0:
                 self.bullets.remove(bullet)
         print(len(self.bullets))
+
+    # 创建飞船舰队
+    def _create_fleet(self):
+        alien = Alien(self)
+        alien_width, alien_height = alien.rect.size
+        current_x, current_y = alien_width, alien_height
+        while current_y <= (self.settings.screen_height - 3 * alien_height):
+            while current_x <= (self.settings.screen_width - 2 * alien_width):
+                alien = Alien(self)
+                self.aliens.add(alien)
+                current_x = current_x + alien_width * 2
+            current_x = alien_width
+            current_y = current_y + alien_height * 2
+
+    def _update_aliens(self):
+        self._check_fleet_edges()
+        self.aliens.update()
+
+    def _check_fleet_edges(self):
+        for alien in self.aliens.sprites():
+            if alien.check_edges():
+                self._change_fleet_direction()
+                break
+
+    def _change_fleet_direction(self):
+        for alien in self.aliens.sprites():
+            alien.rect.y += self.settings.alien_drop_speed
+        self.settings.alien_orientations *= -1
 
 
 if __name__ == '__main__':
