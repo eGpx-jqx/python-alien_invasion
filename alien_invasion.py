@@ -1,5 +1,7 @@
 import sys
+import time
 
+import game_stats
 from alien import Alien
 from ship import Ship
 import pygame
@@ -16,6 +18,8 @@ class AlienInvasion:
 
         self.screen = pygame.display.set_mode(size=(self.settings.screen_width, self.settings.screen_height))
         pygame.display.set_caption('Alien Invasion')
+        self.game_active = True
+        self.stats = game_stats.GameStats(self)
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
@@ -25,10 +29,11 @@ class AlienInvasion:
     def run_game(self):
         while True:
             self._check_events()
-            self.ship.update()
-            self.bullets.update()
-            self._update_bullets()
-            self._update_aliens()
+            if self.game_active:
+                self.ship.update()
+                self.bullets.update()
+                self._update_bullets()
+                self._update_aliens()
             self._update_screen()
             # 设置刷新率
             self.clock.tick(60)
@@ -113,6 +118,33 @@ class AlienInvasion:
     def _update_aliens(self):
         self._check_fleet_edges()
         self.aliens.update()
+
+        # 检测飞船和外星人的碰撞
+        if pygame.sprite.spritecollideany(self.ship, self.aliens):
+            self._ship_hit()
+        # 外星人到达底部
+        self._check_aliens_bottom()
+
+    def _ship_hit(self):
+        if self.stats.ships_left > 0:
+            self.stats.ships_left -= 1
+
+            self.bullets.empty()
+            self.aliens.empty()
+
+            self._create_fleet()
+            self.ship.center_ship()
+
+            time.sleep(0.5)
+        else:
+            self.game_active = False
+
+    # 外星人到达底部
+    def _check_aliens_bottom(self):
+        for sprite in self.aliens.sprites():
+            if sprite.rect.y >= self.settings.screen_height:
+                self._ship_hit()
+                break
 
     def _check_fleet_edges(self):
         for alien in self.aliens.sprites():

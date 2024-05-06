@@ -9,8 +9,9 @@ class Settings:
         # 背景色
         self.bg_color = (230, 230, 230)
 
-        # 飞船
+        # 飞船速度/数量限制
         self.ship_speed = 1.5
+        self.ship_limit = 3
 
         # 子弹
         self.bullet_speed = 2.0
