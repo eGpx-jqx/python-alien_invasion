@@ -1,14 +1,15 @@
 import sys
 import time
 
+import pygame
+import score_board
+
 import button
 import game_stats
 from alien import Alien
-from ship import Ship
-import pygame
-
-from settings import Settings
 from bullet import Bullet
+from settings import Settings
+from ship import Ship
 
 
 class AlienInvasion:
@@ -21,6 +22,7 @@ class AlienInvasion:
         pygame.display.set_caption('Alien Invasion')
         self.game_active = False
         self.stats = game_stats.GameStats(self)
+        self.sb = score_board.ScoreBoard(self)
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
@@ -55,8 +57,12 @@ class AlienInvasion:
     def _check_play_button(self, pos):
         # 如果点击了play
         if self.play_button.rect.collidepoint(pos) and not self.game_active:
-            # 飞船个数重置默认值
+            # 重置游戏设置
+            self.settings.initialize_dynamic_settings()
+            # 飞船个数&得分重置默认值
             self.stats.reset_stats()
+            self.sb.prep_score()
+            self.sb.prep_level()
             # 开始游戏
             self.game_active = True
             # 子弹,外星人置空
@@ -100,6 +106,8 @@ class AlienInvasion:
         # 游戏不是活动状态则绘制play按钮
         if not self.game_active:
             self.play_button.draw_button()
+        # 绘制得分
+        self.sb.show_score()
         # 绘制
         pygame.display.flip()
 
@@ -119,10 +127,20 @@ class AlienInvasion:
     def _check_bullet_alien_collision(self):
         # 删除碰撞的外星人和子弹
         collide = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+        if collide:
+            for aliens in collide.values():
+                self.stats.score += self.settings.alien_points * len(aliens)
+            self.sb.prep_score()
+            self.sb.check_high_score()
         # 外星人为空则 删除子弹&重建外星人舰队
         if not self.aliens:
             self.bullets.empty()
             self._create_fleet()
+            # 加速游戏进程
+            self.settings.increase_speed()
+            # 玩家等级提升
+            self.stats.level += 1
+            self.sb.prep_level()
 
     # 创建飞船舰队
     def _create_fleet(self):
