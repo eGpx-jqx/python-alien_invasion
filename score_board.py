@@ -1,11 +1,16 @@
+import pygame.sprite
+
+
 class ScoreBoard:
     def __init__(self, ai_game):
+        self.ai_game = ai_game
         self.level_image_rect = None
         self.level_image = None
         self.high_score_image = None
         self.high_score_image_rect = None
         self.score_image = None
         self.score_image_rect = None
+        self.ships = None
 
         self.screen = ai_game.screen
         self.screen_rect = self.screen.get_rect()
@@ -19,6 +24,7 @@ class ScoreBoard:
         self.prep_score()
         self.prep_high_score()
         self.prep_level()
+        self.prep_ships()
 
     def prep_score(self):
         # round标识保留小数位-1位  也就是10的倍数
@@ -51,12 +57,24 @@ class ScoreBoard:
         self.level_image_rect.top = self.score_image_rect.bottom + 10
         self.level_image_rect.right = self.score_image_rect.right
 
+    def prep_ships(self):
+        self.ships = pygame.sprite.Group()
+        for ship_number in range(self.stats.ships_left):
+            import ship
+            ship = ship.Ship(self.ai_game)
+            ship.rect.x = 10 + ship_number * ship.rect.width
+            ship.rect.y = 10
+            self.ships.add(ship)
+
+
     def show_score(self):
         self.screen.blit(self.score_image, self.score_image_rect)
         self.screen.blit(self.high_score_image, self.high_score_image_rect)
         self.screen.blit(self.level_image, self.level_image_rect)
+        self.ships.draw(self.screen)
 
     def check_high_score(self):
         if self.stats.score > self.stats.high_score:
             self.stats.high_score = self.stats.score
             self.prep_high_score()
+
